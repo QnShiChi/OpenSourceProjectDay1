@@ -75,7 +75,7 @@
                 <li class="nav-item">
                     <a class="nav-link <?php echo strpos($_SERVER['REQUEST_URI'], '/category/add') !== false ? 'active' : ''; ?>" 
                        href="/PhanDuongQuocNhat/category/add">
-                        <i class="fas fa-folder-plus mr-1"></i> Thêm DM
+                        <i class="fas fa-folder-plus mr-1"></i> Thêm danh mục
                     </a>
                 </li>
             </ul>
