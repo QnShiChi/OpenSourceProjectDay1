@@ -44,7 +44,7 @@
     <div class="container-fluid">
         <!-- Brand / Logo -->
         <a class="navbar-brand" href="/PhanDuongQuocNhat/">
-            <i class="fas fa-store me-2"></i> 9H53 Shop
+            <i class="fas fa-store me-2"></i> Overflow Shop
         </a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 

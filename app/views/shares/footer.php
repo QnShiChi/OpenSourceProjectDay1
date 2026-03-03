@@ -8,7 +8,7 @@
                 <div class="col-md-6 mb-3 mb-md-0">
                     <h5 class="fw-bold">
                         <i class="fas fa-store me-2"></i> 
-                        9H53 Shop
+                        Overflow Shop
                     </h5>
                     <p class="text-muted small">
                         Hệ thống quản lý sản phẩm & danh mục<br>
