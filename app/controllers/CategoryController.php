@@ -92,14 +92,12 @@ class CategoryController
 
             $image = $existing_image;
 
-            // Nếu upload ảnh mới thì xử lý
             if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
                 try {
                     $image = $this->uploadImage($_FILES['image']);
-                    // Có thể xóa ảnh cũ nếu muốn (tuỳ chọn)
-                    // if ($existing_image && file_exists($existing_image)) {
-                    //     unlink($existing_image);
-                    // }
+                    if ($existing_image && file_exists($existing_image)) {
+                        unlink($existing_image);
+                    }
                 } catch (Exception $e) {
                     $errors['image'] = $e->getMessage();
                 }
@@ -183,7 +181,7 @@ class CategoryController
         }
 
         $imageFileType = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
-        $target_file = $target_dir . uniqid() . '.' . $imageFileType; // tránh trùng tên
+        $target_file = $target_dir . uniqid() . '.' . $imageFileType; 
 
         $check = getimagesize($file["tmp_name"]);
         if ($check === false) {
