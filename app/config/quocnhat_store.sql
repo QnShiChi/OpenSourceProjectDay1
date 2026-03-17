@@ -1,0 +1,50 @@
+CREATE DATABASE quocnhat_store;
+
+USE quocnhat_store;
+
+CREATE TABLE IF NOT EXISTS category (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    image VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. Tạo bảng product
+CREATE TABLE IF NOT EXISTS product (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    price DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    image VARCHAR(255) NULL,
+    category_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Thiết lập khóa ngoại liên kết với bảng category
+    CONSTRAINT fk_product_category 
+        FOREIGN KEY (category_id) 
+        REFERENCES category(id) 
+        ON DELETE SET NULL 
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=UTF8MB4_UNICODE_CI;
+
+CREATE TABLE orders (
+id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+phone VARCHAR(20) NOT NULL,
+address TEXT NOT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_details (
+id INT AUTO_INCREMENT PRIMARY KEY,
+order_id INT NOT NULL,
+product_id INT NOT NULL,
+quantity INT NOT NULL,
+price DECIMAL(10, 2) NOT NULL,
+FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+
