@@ -2,3 +2,5 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+RewriteRule ^Product/removeFromCart/([0-9]+)$ index.php?controller=Product&action=removeFromCart&id=$1 [L]
+RewriteRule ^Product/updateCartQuantity/([0-9]+)$ index.php?controller=Product&action=updateCartQuantity&id=$1 [L]

@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Cửa hàng - Phan Dương Quốc Nhật</title>
+    <title>Quản lý Cửa hàng - Overflow Shop</title>
     
     <!-- Bootstrap 4.5.2 CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     
-    <!-- Font Awesome 5 (cho icon đẹp) -->
+    <!-- Font Awesome 5 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
     <style>
@@ -36,6 +36,24 @@
         .navbar-dark .navbar-nav .nav-link {
             color: rgba(255,255,255,0.9);
         }
+        /* Badge giỏ hàng */
+        .cart-icon {
+            position: relative;
+            font-size: 1.3rem;
+        }
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -55,7 +73,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], '/Product/') !== false && !strpos($_SERVER['REQUEST_URI'], '/add')) ? 'active' : ''; ?>" 
+                    <a class="nav-link <?php echo (strpos($_SERVER['REQUEST_URI'], '/Product/') !== false && !strpos($_SERVER['REQUEST_URI'], '/add') && !strpos($_SERVER['REQUEST_URI'], '/cart') && !strpos($_SERVER['REQUEST_URI'], '/checkout')) ? 'active' : ''; ?>" 
                        href="/PhanDuongQuocNhat/Product/">
                         <i class="fas fa-box-open mr-1"></i> Sản phẩm
                     </a>
@@ -78,9 +96,37 @@
                         <i class="fas fa-folder-plus mr-1"></i> Thêm danh mục
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo strpos($_SERVER['REQUEST_URI'], '/orderHistory') !== false ? 'active' : ''; ?>" 
+                       href="/PhanDuongQuocNhat/Product/orderHistory">
+                        <i class="fas fa-history mr-1"></i> Đơn hàng
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Icon giỏ hàng (luôn hiển thị bên phải) -->
+            <ul class="navbar-nav ml-3">
+                <li class="nav-item">
+                    <a class="nav-link cart-icon" href="/PhanDuongQuocNhat/Product/cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <?php
+                        // Đếm số lượng sản phẩm trong giỏ
+                        $cartCount = 0;
+                        if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+                            foreach ($_SESSION['cart'] as $item) {
+                                $cartCount += $item['quantity'];
+                            }
+                        }
+                        if ($cartCount > 0):
+                        ?>
+                            <span class="cart-badge"><?= $cartCount ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
 
 <div class="container mt-4 mb-5">
+    <!-- Nội dung chính của trang sẽ nằm ở đây -->

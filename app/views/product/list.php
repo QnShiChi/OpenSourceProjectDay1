@@ -20,21 +20,21 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm product-card">
                         <?php if ($product->image): ?>
-                            <img src="/PhanDuongQuocNhat/<?= htmlspecialchars($product->image) ?>" 
-                                 class="card-img-top" 
-                                 alt="<?= htmlspecialchars($product->name) ?>"
-                                 style="height: 220px; object-fit: cover;">
+                            <img src="/PhanDuongQuocNhat/<?= htmlspecialchars($product->image) ?>"
+                                class="card-img-top"
+                                alt="<?= htmlspecialchars($product->name) ?>"
+                                style="height: 220px; object-fit: cover;">
                         <?php else: ?>
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
-                                 style="height: 220px;">
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                style="height: 220px;">
                                 <i class="fas fa-image fa-5x text-muted"></i>
                             </div>
                         <?php endif; ?>
 
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">
-                                <a href="/PhanDuongQuocNhat/Product/show/<?= $product->id ?>" 
-                                   class="text-decoration-none text-dark">
+                                <a href="/PhanDuongQuocNhat/Product/show/<?= $product->id ?>"
+                                    class="text-decoration-none text-dark">
                                     <?= htmlspecialchars($product->name) ?>
                                 </a>
                             </h5>
@@ -55,15 +55,17 @@
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <a href="/PhanDuongQuocNhat/Product/edit/<?= $product->id ?>" 
-                                       class="btn btn-warning btn-sm flex-fill">
+                                    <a href="/PhanDuongQuocNhat/Product/edit/<?= $product->id ?>"
+                                        class="btn btn-warning btn-sm flex-fill">
                                         <i class="fas fa-edit"></i> Sửa
                                     </a>
-                                    <a href="/PhanDuongQuocNhat/Product/delete/<?= $product->id ?>" 
-                                       class="btn btn-danger btn-sm flex-fill"
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+                                    <a href="/PhanDuongQuocNhat/Product/delete/<?= $product->id ?>"
+                                        class="btn btn-danger btn-sm flex-fill"
+                                        onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
                                         <i class="fas fa-trash-alt"></i> Xóa
                                     </a>
+                                    <a href="/PhanDuongQuocNhat/Product/addToCart/<?php echo $product->id; ?>"
+                                        class="btn btn-primary">Thêm vào giỏ hàng</a>
                                 </div>
                             </div>
                         </div>

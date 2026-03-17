@@ -4,6 +4,7 @@ require_once('app/config/database.php');
 require_once('app/models/ProductModel.php');
 
 require_once('app/models/CategoryModel.php');
+require_once 'app/models/OrderModel.php';
 class ProductController
 {
     private $productModel;
@@ -146,10 +147,13 @@ class ProductController
         }
         return $target_file;
     }
+
+
     public function addToCart($id)
     {
         $product = $this->productModel->getProductById($id);
         if (!$product) {
+
             echo "Không tìm thấy sản phẩm.";
             return;
         }
@@ -167,5 +171,132 @@ class ProductController
             ];
         }
         header('Location: /PhanDuongQuocNhat/Product/cart');
+    }
+    public function cart()
+    {
+        $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+        include 'app/views/product/cart.php';
+    }
+    public function checkout()
+    {
+        include 'app/views/product/checkout.php';
+    }
+    public function processCheckout()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $name   = trim($_POST['name'] ?? '');
+            $phone  = trim($_POST['phone'] ?? '');
+            $address = trim($_POST['address'] ?? '');
+
+            // Kiểm tra giỏ hàng
+            if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+                echo "Giỏ hàng trống.";
+                return;
+            }
+
+            $this->db->beginTransaction();
+            try {
+                // Lưu đơn hàng
+                $query = "INSERT INTO orders (name, phone, address) VALUES (:name, :phone, :address)";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':name', $name);
+                $stmt->bindParam(':phone', $phone);
+                $stmt->bindParam(':address', $address);
+                $stmt->execute();
+
+                $order_id = $this->db->lastInsertId();  // ← Lấy ID vừa tạo
+
+                // Lưu chi tiết sản phẩm
+                $cart = $_SESSION['cart'];
+                foreach ($cart as $product_id => $item) {
+                    $query = "INSERT INTO order_details (order_id, product_id, quantity, price) 
+                          VALUES (:order_id, :product_id, :quantity, :price)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':order_id', $order_id);
+                    $stmt->bindParam(':product_id', $product_id);
+                    $stmt->bindParam(':quantity', $item['quantity']);
+                    $stmt->bindParam(':price', $item['price']);
+                    $stmt->execute();
+                }
+
+                $this->db->commit();
+                unset($_SESSION['cart']);
+
+                // Redirect đến trang xác nhận kèm order_id
+                header("Location: /PhanDuongQuocNhat/Product/orderConfirmation/$order_id");
+                exit;
+            } catch (Exception $e) {
+                $this->db->rollBack();
+                echo "Đã xảy ra lỗi khi xử lý đơn hàng: " . $e->getMessage();
+            }
+        }
+    }
+
+    public function orderConfirmation($order_id = null)
+    {
+        if (!$order_id || !is_numeric($order_id)) {
+            echo "Không tìm thấy đơn hàng.";
+            return;
+        }
+
+        require_once 'app/models/OrderModel.php'; 
+
+        $orderModel = new OrderModel($this->db);
+        $order = $orderModel->getOrderById($order_id);
+
+        include 'app/views/product/orderConfirmation.php';
+    }
+    // Xóa một sản phẩm khỏi giỏ hàng
+    public function removeFromCart($id)
+    {
+        if (isset($_SESSION['cart'][$id])) {
+            unset($_SESSION['cart'][$id]);
+        }
+        header('Location: /PhanDuongQuocNhat/Product/cart');
+        exit;
+    }
+
+    // Cập nhật số lượng sản phẩm trong giỏ hàng
+    public function updateCartQuantity($id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $quantity = (int)($_POST['quantity'] ?? 1);
+
+            if ($quantity <= 0) {
+                // Nếu số lượng <= 0 thì xóa sản phẩm
+                if (isset($_SESSION['cart'][$id])) {
+                    unset($_SESSION['cart'][$id]);
+                }
+            } else {
+                if (isset($_SESSION['cart'][$id])) {
+                    $_SESSION['cart'][$id]['quantity'] = $quantity;
+                }
+            }
+
+            header('Location: /PhanDuongQuocNhat/Product/cart');
+            exit;
+        }
+    }
+
+    // Lấy danh sách tất cả đơn hàng
+    public function orderHistory()
+    {
+        $orderModel = new OrderModel($this->db);
+        $orders = $orderModel->getAllOrders();
+        include 'app/views/product/orderHistory.php';
+    }
+
+    // Xem chi tiết một đơn hàng
+    public function orderDetail($order_id)
+    {
+        $orderModel = new OrderModel($this->db);
+        $order = $orderModel->getOrderById($order_id);
+        $details = $orderModel->getOrderDetails($order_id);
+
+        if ($order) {
+            include 'app/views/product/orderDetail.php';
+        } else {
+            echo "Không tìm thấy đơn hàng.";
+        }
     }
 }
