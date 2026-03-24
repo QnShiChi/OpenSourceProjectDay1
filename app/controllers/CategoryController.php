@@ -9,6 +9,7 @@ class CategoryController
 
     public function __construct()
     {
+        SessionHelper::requireAdmin();
         $this->db = (new Database())->getConnection();
         $this->categoryModel = new CategoryModel($this->db);
     }

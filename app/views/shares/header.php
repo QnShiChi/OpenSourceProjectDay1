@@ -11,6 +11,9 @@
     <!-- Font Awesome 5 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
+    <!-- Custom Product Card style -->
+    <link rel="stylesheet" href="/PhanDuongQuocNhat/css/product-card.css">
+    
     <style>
         .navbar {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -33,10 +36,6 @@
             background-color: rgba(255,255,255,0.2);
             border-radius: 5px;
         }
-        .navbar-dark .navbar-nav .nav-link {
-            color: rgba(255,255,255,0.9);
-        }
-        /* Badge giỏ hàng */
         .cart-icon {
             position: relative;
             font-size: 1.3rem;
@@ -53,6 +52,16 @@
             min-width: 18px;
             text-align: center;
             line-height: 1;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -78,6 +87,7 @@
                         <i class="fas fa-box-open mr-1"></i> Sản phẩm
                     </a>
                 </li>
+                <?php if (SessionHelper::isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo strpos($_SERVER['REQUEST_URI'], '/Product/add') !== false ? 'active' : ''; ?>" 
                        href="/PhanDuongQuocNhat/Product/add">
@@ -96,21 +106,23 @@
                         <i class="fas fa-folder-plus mr-1"></i> Thêm danh mục
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if (SessionHelper::isLoggedIn()): ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo strpos($_SERVER['REQUEST_URI'], '/orderHistory') !== false ? 'active' : ''; ?>" 
                        href="/PhanDuongQuocNhat/Product/orderHistory">
                         <i class="fas fa-history mr-1"></i> Đơn hàng
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
 
-            <!-- Icon giỏ hàng (luôn hiển thị bên phải) -->
+            <!-- Giỏ hàng -->
             <ul class="navbar-nav ml-3">
                 <li class="nav-item">
                     <a class="nav-link cart-icon" href="/PhanDuongQuocNhat/Product/cart">
                         <i class="fas fa-shopping-cart"></i>
                         <?php
-                        // Đếm số lượng sản phẩm trong giỏ
                         $cartCount = 0;
                         if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
                             foreach ($_SESSION['cart'] as $item) {
@@ -124,9 +136,55 @@
                     </a>
                 </li>
             </ul>
+
+            <!-- Phần Đăng nhập / Đăng xuất -->
+            <ul class="navbar-nav ml-3">
+                <?php if (isset($_SESSION['username'])): ?>
+                    <!-- Đã đăng nhập -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" 
+                           role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="user-avatar mr-2">
+                                <?php if (!empty($_SESSION['avatar'])): ?>
+                                    <img src="/PhanDuongQuocNhat/<?= htmlspecialchars($_SESSION['avatar']) ?>" alt="Avatar" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                                <?php else: ?>
+                                    <i class="fas fa-user"></i>
+                                <?php endif; ?>
+                            </span>
+                            <?= htmlspecialchars($_SESSION['fullname'] ?? $_SESSION['username']) ?>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="/PhanDuongQuocNhat/account/profile">
+                                <i class="fas fa-user-circle mr-2"></i> Hồ sơ cá nhân
+                            </a>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                                <a class="dropdown-item" href="/PhanDuongQuocNhat/admin">
+                                    <i class="fas fa-cog mr-2"></i> Quản trị
+                                </a>
+                            <?php endif; ?>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="/PhanDuongQuocNhat/account/logout">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                            </a>
+                        </div>
+                    </li>
+                <?php else: ?>
+                    <!-- Chưa đăng nhập -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/PhanDuongQuocNhat/account/login">
+                            <i class="fas fa-sign-in-alt mr-1"></i> Đăng nhập
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/PhanDuongQuocNhat/account/register">
+                            <i class="fas fa-user-plus mr-1"></i> Đăng ký
+                        </a>
+                    </li>
+                <?php endif; ?>
+            </ul>
         </div>
     </div>
 </nav>
 
 <div class="container mt-4 mb-5">
-    <!-- Nội dung chính của trang sẽ nằm ở đây -->
+    <!-- Nội dung chính của các trang sẽ nằm ở đây -->

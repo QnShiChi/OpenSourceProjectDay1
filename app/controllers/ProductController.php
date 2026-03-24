@@ -16,7 +16,9 @@ class ProductController
     }
     public function index()
     {
-        $products = $this->productModel->getProducts();
+        $category_id = $_GET['category_id'] ?? null;
+        $products = $this->productModel->getProducts($category_id);
+        $categories = (new CategoryModel($this->db))->getCategories();
         include 'app/views/product/list.php';
     }
     public function show($id)
@@ -30,11 +32,13 @@ class ProductController
     }
     public function add()
     {
+        SessionHelper::requireAdmin();
         $categories = (new CategoryModel($this->db))->getCategories();
         include_once 'app/views/product/add.php';
     }
     public function save()
     {
+        SessionHelper::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $name = $_POST['name'] ?? '';
             $description = $_POST['description'] ?? '';
@@ -67,6 +71,7 @@ class ProductController
     }
     public function edit($id)
     {
+        SessionHelper::requireAdmin();
         $product = $this->productModel->getProductById($id);
         $categories = (new CategoryModel($this->db))->getCategories();
         if ($product) {
@@ -77,6 +82,7 @@ class ProductController
     }
     public function update()
     {
+        SessionHelper::requireAdmin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'];
             $name = $_POST['name'];
@@ -108,6 +114,7 @@ class ProductController
     }
     public function delete($id)
     {
+        SessionHelper::requireAdmin();
         if ($this->productModel->deleteProduct($id)) {
             header('Location: /PhanDuongQuocNhat/Product');
         } else {
@@ -170,7 +177,8 @@ class ProductController
                 'image' => $product->image
             ];
         }
-        header('Location: /PhanDuongQuocNhat/Product/cart');
+        $referer = $_SERVER['HTTP_REFERER'] ?? '/PhanDuongQuocNhat/Product';
+        header("Location: $referer");
     }
     public function cart()
     {
@@ -197,11 +205,13 @@ class ProductController
             $this->db->beginTransaction();
             try {
                 // Lưu đơn hàng
-                $query = "INSERT INTO orders (name, phone, address) VALUES (:name, :phone, :address)";
+                $user_id = $_SESSION['user_id'] ?? null;
+                $query = "INSERT INTO orders (name, phone, address, user_id) VALUES (:name, :phone, :address, :user_id)";
                 $stmt = $this->db->prepare($query);
                 $stmt->bindParam(':name', $name);
                 $stmt->bindParam(':phone', $phone);
                 $stmt->bindParam(':address', $address);
+                $stmt->bindParam(':user_id', $user_id);
                 $stmt->execute();
 
                 $order_id = $this->db->lastInsertId();  // ← Lấy ID vừa tạo
@@ -281,22 +291,33 @@ class ProductController
     // Lấy danh sách tất cả đơn hàng
     public function orderHistory()
     {
+        SessionHelper::requireLogin();
         $orderModel = new OrderModel($this->db);
-        $orders = $orderModel->getAllOrders();
+        if (SessionHelper::isAdmin()) {
+            $orders = $orderModel->getAllOrders();
+        } else {
+            $orders = $orderModel->getAllOrders($_SESSION['user_id'] ?? null);
+        }
         include 'app/views/product/orderHistory.php';
     }
 
     // Xem chi tiết một đơn hàng
     public function orderDetail($order_id)
     {
+        SessionHelper::requireLogin();
         $orderModel = new OrderModel($this->db);
-        $order = $orderModel->getOrderById($order_id);
-        $details = $orderModel->getOrderDetails($order_id);
+        
+        if (SessionHelper::isAdmin()) {
+            $order = $orderModel->getOrderById($order_id);
+        } else {
+            $order = $orderModel->getOrderById($order_id, $_SESSION['user_id'] ?? null);
+        }
 
         if ($order) {
+            $details = $orderModel->getOrderDetails($order_id);
             include 'app/views/product/orderDetail.php';
         } else {
-            echo "Không tìm thấy đơn hàng.";
+            echo "Không tìm thấy đơn hàng hoặc bạn không có quyền xem.";
         }
     }
 }

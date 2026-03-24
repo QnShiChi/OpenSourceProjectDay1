@@ -7,18 +7,24 @@ class ProductModel
     {
         $this->conn = $db;
     }
-    public function getProducts()
+    public function getProducts($categoryId = null)
     {
-        $query = "SELECT p.id, p.name, p.description, p.price, p.image, c.name as
-category_name
-
-FROM " . $this->table_name . " p
-LEFT JOIN category c ON p.category_id = c.id";
+        $query = "SELECT p.id, p.name, p.description, p.price, p.image, c.name as category_name 
+                  FROM " . $this->table_name . " p 
+                  LEFT JOIN category c ON p.category_id = c.id";
+                  
+        if ($categoryId) {
+            $query .= " WHERE p.category_id = :category_id";
+        }
 
         $stmt = $this->conn->prepare($query);
+        
+        if ($categoryId) {
+            $stmt->bindParam(':category_id', $categoryId, PDO::PARAM_INT);
+        }
+        
         $stmt->execute();
-        $result = $stmt->fetchAll(PDO::FETCH_OBJ);
-        return $result;
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
     public function getProductById($id)
     {

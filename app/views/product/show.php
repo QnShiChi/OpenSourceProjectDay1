@@ -57,10 +57,12 @@
                                class="btn btn-success btn-lg flex-grow-1">
                                 <i class="fas fa-cart-plus me-2"></i> Thêm vào giỏ hàng
                             </a>
+                            <?php if (SessionHelper::isAdmin()): ?>
                             <a href="/PhanDuongQuocNhat/Product/edit/<?= $product->id ?>" 
                                class="btn btn-warning btn-lg">
                                 <i class="fas fa-edit me-2"></i> Sửa sản phẩm
                             </a>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Thông tin bổ sung (có thể thêm sau) -->
