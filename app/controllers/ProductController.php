@@ -16,9 +16,6 @@ class ProductController
     }
     public function index()
     {
-        $category_id = $_GET['category_id'] ?? null;
-        $products = $this->productModel->getProducts($category_id);
-        $categories = (new CategoryModel($this->db))->getCategories();
         include 'app/views/product/list.php';
     }
     public function show($id)
@@ -33,93 +30,24 @@ class ProductController
     public function add()
     {
         SessionHelper::requireAdmin();
-        $categories = (new CategoryModel($this->db))->getCategories();
         include_once 'app/views/product/add.php';
     }
     public function save()
     {
-        SessionHelper::requireAdmin();
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $name = $_POST['name'] ?? '';
-            $description = $_POST['description'] ?? '';
-            $price = $_POST['price'] ?? '';
-            $category_id = $_POST['category_id'] ?? null;
-            if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-                $image = $this->uploadImage($_FILES['image']);
-            } else {
-
-
-                $image = "";
-            }
-            $result = $this->productModel->addProduct(
-                $name,
-                $description,
-                $price,
-
-                $category_id,
-                $image
-            );
-
-            if (is_array($result)) {
-                $errors = $result;
-                $categories = (new CategoryModel($this->db))->getCategories();
-                include 'app/views/product/add.php';
-            } else {
-                header('Location: /PhanDuongQuocNhat/Product');
-            }
-        }
+        // Moved to API
     }
     public function edit($id)
     {
         SessionHelper::requireAdmin();
-        $product = $this->productModel->getProductById($id);
-        $categories = (new CategoryModel($this->db))->getCategories();
-        if ($product) {
-            include 'app/views/product/edit.php';
-        } else {
-            echo "Không thấy sản phẩm.";
-        }
+        include 'app/views/product/edit.php';
     }
     public function update()
     {
-        SessionHelper::requireAdmin();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = $_POST['id'];
-            $name = $_POST['name'];
-            $description = $_POST['description'];
-            $price = $_POST['price'];
-            $category_id = $_POST['category_id'];
-            if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-                $image = $this->uploadImage($_FILES['image']);
-            } else {
-                $image = $_POST['existing_image'];
-            }
-            $edit = $this->productModel->updateProduct(
-                $id,
-                $name,
-                $description,
-
-                $price,
-                $category_id,
-                $image
-            );
-
-
-            if ($edit) {
-                header('Location: /PhanDuongQuocNhat/Product');
-            } else {
-                echo "Đã xảy ra lỗi khi lưu sản phẩm.";
-            }
-        }
+        // Moved to API
     }
     public function delete($id)
     {
-        SessionHelper::requireAdmin();
-        if ($this->productModel->deleteProduct($id)) {
-            header('Location: /PhanDuongQuocNhat/Product');
-        } else {
-            echo "Đã xảy ra lỗi khi xóa sản phẩm.";
-        }
+        // Moved to API
     }
     private function uploadImage($file)
     {

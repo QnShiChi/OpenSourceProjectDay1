@@ -11,9 +11,72 @@ $url = rtrim($url, '/');
 $url = filter_var($url, FILTER_SANITIZE_URL);
 $url = explode('/', $url);
 
-$controllerName = isset($url[0]) && $url[0] !== ''
-    ? ucfirst(strtolower($url[0])) . 'Controller'
-    : 'ProductController';
+// Định tuyến API nếu URL bắt đầu bằng 'api'
+if (isset($url[0]) && strtolower($url[0]) === 'api' && isset($url[1])) {
+    $apiControllerName = ucfirst(strtolower($url[1])) . 'ApiController';
+    if (file_exists('app/controllers/' . $apiControllerName . '.php')) {
+        require_once 'app/controllers/' . $apiControllerName . '.php';
+        $controller = new $apiControllerName();
+        $method = $_SERVER['REQUEST_METHOD'];
+        
+        // Support method overriding for PUT/DELETE via POST form-data
+        if ($method === 'POST') {
+            if (isset($_POST['_method'])) {
+                $method = strtoupper($_POST['_method']);
+            } elseif (isset($_GET['_method'])) {
+                $method = strtoupper($_GET['_method']);
+            } elseif (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+                $method = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+            }
+        }
+        $id = $url[2] ?? null;
+        $action = 'index';
+        
+        switch ($method) {
+            case 'GET':
+                $action = $id ? 'show' : 'index';
+                break;
+            case 'POST':
+                $action = 'store';
+                break;
+            case 'PUT':
+                if ($id) { $action = 'update'; }
+                break;
+            case 'DELETE':
+                if ($id) { $action = 'destroy'; }
+                break;
+            default:
+                http_response_code(405);
+                echo json_encode(['message' => 'Method Not Allowed']);
+                exit;
+        }
+        
+        if (method_exists($controller, $action)) {
+            if ($id) {
+                call_user_func_array([$controller, $action], [$id]);
+            } else {
+                call_user_func_array([$controller, $action], []);
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['message' => 'Action not found']);
+        }
+        exit;
+    } else {
+        http_response_code(404);
+        echo json_encode(['message' => 'API Controller not found']);
+        exit;
+    }
+}
+
+// Lấy controller mặc định
+if (isset($url[0]) && strtolower($url[0]) === 'api-test') {
+    $controllerName = 'ApiTestController';
+} else {
+    $controllerName = isset($url[0]) && $url[0] !== ''
+        ? ucfirst(strtolower($url[0])) . 'Controller'
+        : 'ProductController';
+}
 
 $action = isset($url[1]) && $url[1] !== '' ? $url[1] : 'index';
 

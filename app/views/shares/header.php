@@ -11,6 +11,9 @@
     <!-- Font Awesome 5 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
+    <!-- jQuery (Full version with AJAX) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <!-- Custom Product Card style -->
     <link rel="stylesheet" href="/PhanDuongQuocNhat/css/product-card.css">
     
@@ -104,6 +107,12 @@
                     <a class="nav-link <?php echo strpos($_SERVER['REQUEST_URI'], '/category/add') !== false ? 'active' : ''; ?>" 
                        href="/PhanDuongQuocNhat/category/add">
                         <i class="fas fa-folder-plus mr-1"></i> Thêm danh mục
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php echo strpos($_SERVER['REQUEST_URI'], '/api-test') !== false ? 'active' : ''; ?>" 
+                       href="/PhanDuongQuocNhat/api-test" target="_blank">
+                        <i class="fas fa-cogs mr-1"></i> API Test
                     </a>
                 </li>
                 <?php endif; ?>
