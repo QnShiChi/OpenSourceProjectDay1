@@ -195,5 +195,30 @@
     </div>
 </nav>
 
+<?php if(isset($_SESSION['jwt_token'])): ?>
+<script>
+    localStorage.setItem('jwt_token', '<?= $_SESSION['jwt_token'] ?>');
+</script>
+<?php endif; ?>
+
+<?php if(!isset($_SESSION['user_id'])): ?>
+<script>
+    localStorage.removeItem('jwt_token');
+</script>
+<?php endif; ?>
+
+<script>
+    // Cấu hình ngầm định để jQuery luôn luôn kẹp JWT Token khi gọi API
+    // Dùng thuộc tính headers để tránh bị ghi đè nếu các trang khác có xài tham số beforeSend
+    const jwt_token = localStorage.getItem('jwt_token');
+    if (jwt_token) {
+        $.ajaxSetup({
+            headers: {
+                'Authorization': 'Bearer ' + jwt_token
+            }
+        });
+    }
+</script>
+
 <div class="container mt-4 mb-5">
     <!-- Nội dung chính của các trang sẽ nằm ở đây -->

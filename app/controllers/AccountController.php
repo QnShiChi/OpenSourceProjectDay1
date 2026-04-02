@@ -1,6 +1,7 @@
 <?php
 require_once 'app/config/database.php';
 require_once 'app/models/AccountModel.php';
+require_once 'app/utils/JWTHandler.php';
 
 class AccountController
 {
@@ -20,15 +21,30 @@ class AccountController
 
     public function save()
     {
+        $isApi = strpos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false || isset($_GET['api']);
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($isApi) {
+                http_response_code(405);
+                echo json_encode(['message' => 'Phương thức không được hỗ trợ']);
+                exit;
+            }
             header('Location: /PhanDuongQuocNhat/account/register');
             exit;
         }
 
-        $username = trim($_POST['username'] ?? '');
-        $fullname = trim($_POST['fullname'] ?? '');
-        $password = $_POST['password'] ?? '';
-        $confirm  = $_POST['confirmpassword'] ?? '';
+        if ($isApi) {
+            $data = json_decode(file_get_contents("php://input"), true);
+            $username = trim($data['username'] ?? '');
+            $fullname = trim($data['fullname'] ?? '');
+            $password = $data['password'] ?? '';
+            $confirm  = $data['confirmpassword'] ?? '';
+        } else {
+            $username = trim($_POST['username'] ?? '');
+            $fullname = trim($_POST['fullname'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $confirm  = $_POST['confirmpassword'] ?? '';
+        }
 
         $errors = [];
 
@@ -42,14 +58,32 @@ class AccountController
         }
 
         if (!empty($errors)) {
+            if ($isApi) {
+                http_response_code(400);
+                header('Content-Type: application/json');
+                echo json_encode(['errors' => $errors]);
+                exit;
+            }
             include_once 'app/views/account/register.php';
             return;
         }
 
         if ($this->accountModel->save($username, $fullname, $password)) {
+            if ($isApi) {
+                http_response_code(201);
+                header('Content-Type: application/json');
+                echo json_encode(['message' => 'Đăng ký thành công!']);
+                exit;
+            }
             header('Location: /PhanDuongQuocNhat/account/login');
             exit;
         } else {
+            if ($isApi) {
+                http_response_code(500);
+                header('Content-Type: application/json');
+                echo json_encode(['message' => 'Đăng ký thất bại!']);
+                exit;
+            }
             $errors['general'] = "Đăng ký thất bại!";
             include_once 'app/views/account/register.php';
         }
@@ -63,29 +97,78 @@ class AccountController
     // ================== ĐĂNG NHẬP ==================
     public function checkLogin()
     {
+        $isApi = strpos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false || isset($_GET['api']);
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if ($isApi) {
+                http_response_code(405);
+                echo json_encode(['message' => 'Phương thức không được hỗ trợ']);
+                exit;
+            }
             header('Location: /PhanDuongQuocNhat/account/login');
             exit;
         }
 
-        $username = trim($_POST['username'] ?? '');
-        $password = $_POST['password'] ?? '';
+        if ($isApi) {
+            $data = json_decode(file_get_contents("php://input"), true);
+            $username = trim($data['username'] ?? '');
+            $password = $data['password'] ?? '';
+        } else {
+            $username = trim($_POST['username'] ?? '');
+            $password = $_POST['password'] ?? '';
+        }
 
         $account = $this->accountModel->getAccountByUsername($username);
 
         if ($account && password_verify($password, $account->password)) {
-            session_start();
+            if ($isApi) {
+                $jwtHandler = new JWTHandler();
+                $payload = [
+                    'user_id' => $account->id,
+                    'username' => $account->username,
+                    'role' => $account->role
+                ];
+                $token = $jwtHandler->encode($payload);
+                
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'message' => 'Đăng nhập thành công',
+                    'token' => $token,
+                    'user' => $payload
+                ]);
+                exit;
+            }
+
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $_SESSION['user_id']   = $account->id;
             $_SESSION['username']  = $account->username;
             $_SESSION['fullname']  = $account->fullname ?? $account->username;
             $_SESSION['role']      = $account->role;
             $_SESSION['avatar']    = $account->avatar ?? null;
 
+            // Generate JWT for hybrid web/api usage
+            $jwtHandler = new JWTHandler();
+            $payload = [
+                'user_id' => $account->id,
+                'username' => $account->username,
+                'role' => $account->role
+            ];
+            $_SESSION['jwt_token'] = $jwtHandler->encode($payload);
+
             header('Location: /PhanDuongQuocNhat/Product');
             exit;
         }
 
         // Đăng nhập thất bại
+        if ($isApi) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['message' => 'Tên đăng nhập hoặc mật khẩu không đúng!']);
+            exit;
+        }
+
         $error = "Tên đăng nhập hoặc mật khẩu không đúng!";
         include_once 'app/views/account/login.php';
     }

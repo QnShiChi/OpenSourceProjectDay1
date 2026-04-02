@@ -1,6 +1,7 @@
 <?php
 require_once('app/config/database.php');
 require_once('app/models/CategoryModel.php');
+require_once('app/utils/JWTHandler.php');
 
 class CategoryApiController
 {
@@ -13,10 +14,43 @@ class CategoryApiController
         $this->categoryModel = new CategoryModel($this->db);
     }
 
+    private function authenticate($action = 'thêm, xoá hoặc sửa', $requireAdmin = true)
+    {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        if (!$authHeader && function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            $authHeader = $headers['Authorization'] ?? '';
+        }
+
+        if (preg_match('/[Bb]earer\s(\S+)/', $authHeader, $matches)) {
+            $jwt = $matches[1];
+            $jwtHandler = new JWTHandler();
+            $decoded = $jwtHandler->decode($jwt);
+            
+            if ($decoded) {
+                if (!$requireAdmin) {
+                    return $decoded;
+                }
+                if (isset($decoded['role']) && $decoded['role'] === 'admin') {
+                    return $decoded;
+                } else {
+                    http_response_code(403);
+                    echo json_encode(['message' => 'Chỉ admin mới có quyền ' . $action]);
+                    exit;
+                }
+            }
+        }
+
+        http_response_code(401);
+        echo json_encode(['message' => 'Vui lòng đăng nhập']);
+        exit;
+    }
+
     // Lấy danh sách danh mục
     public function index()
     {
         header('Content-Type: application/json');
+        $this->authenticate('xem', false);
         $categories = $this->categoryModel->getCategories();
         echo json_encode($categories);
     }
@@ -25,12 +59,13 @@ class CategoryApiController
     public function show($id)
     {
         header('Content-Type: application/json');
+        $this->authenticate('xem', false);
         $category = $this->categoryModel->getCategoryById($id);
         if ($category) {
             echo json_encode($category);
         } else {
             http_response_code(404);
-            echo json_encode(['message' => 'Category not found']);
+            echo json_encode(['message' => 'Không tìm thấy danh mục']);
         }
     }
 
@@ -68,6 +103,7 @@ class CategoryApiController
     public function store()
     {
         header('Content-Type: application/json');
+        $this->authenticate('thêm');
         $data = json_decode(file_get_contents("php://input"), true) ?? $_POST;
         
         $name = $data['name'] ?? '';
@@ -88,10 +124,10 @@ class CategoryApiController
 
         if ($result) {
             http_response_code(201);
-            echo json_encode(['message' => 'Category created successfully']);
+            echo json_encode(['message' => 'Thêm danh mục thành công']);
         } else {
             http_response_code(400);
-            echo json_encode(['message' => 'Category creation failed']);
+            echo json_encode(['message' => 'Thêm danh mục thất bại']);
         }
     }
 
@@ -99,6 +135,7 @@ class CategoryApiController
     public function update($id)
     {
         header('Content-Type: application/json');
+        $this->authenticate('sửa');
         $data = json_decode(file_get_contents("php://input"), true);
         if (!$data) {
             parse_str(file_get_contents("php://input"), $data);
@@ -111,7 +148,7 @@ class CategoryApiController
         $existingCategory = $this->categoryModel->getCategoryById($id);
         if (!$existingCategory) {
             http_response_code(404);
-            echo json_encode(['message' => 'Category not found']);
+            echo json_encode(['message' => 'Không tìm thấy danh mục']);
             return;
         }
         
@@ -135,10 +172,10 @@ class CategoryApiController
         $result = $this->categoryModel->updateCategory($id, $name, $description, $image);
         
         if ($result) {
-            echo json_encode(['message' => 'Category updated successfully']);
+            echo json_encode(['message' => 'Cập nhật danh mục thành công']);
         } else {
             http_response_code(400);
-            echo json_encode(['message' => 'Category update failed']);
+            echo json_encode(['message' => 'Cập nhật danh mục thất bại']);
         }
     }
 
@@ -146,6 +183,7 @@ class CategoryApiController
     public function destroy($id)
     {
         header('Content-Type: application/json');
+        $this->authenticate('xoá');
         
         $category = $this->categoryModel->getCategoryById($id);
         if ($category && $category->image && file_exists($category->image)) {
@@ -154,10 +192,10 @@ class CategoryApiController
 
         $result = $this->categoryModel->deleteCategory($id);
         if ($result) {
-            echo json_encode(['message' => 'Category deleted successfully']);
+            echo json_encode(['message' => 'Xóa danh mục thành công']);
         } else {
             http_response_code(400);
-            echo json_encode(['message' => 'Category deletion failed']);
+            echo json_encode(['message' => 'Xóa danh mục thất bại']);
         }
     }
 }

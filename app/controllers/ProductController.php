@@ -11,6 +11,7 @@ class ProductController
     private $db;
     public function __construct()
     {
+        SessionHelper::requireLogin();
         $this->db = (new Database())->getConnection();
         $this->productModel = new ProductModel($this->db);
     }
@@ -86,6 +87,7 @@ class ProductController
 
     public function addToCart($id)
     {
+        SessionHelper::requireLogin();
         $product = $this->productModel->getProductById($id);
         if (!$product) {
 
@@ -115,10 +117,12 @@ class ProductController
     }
     public function checkout()
     {
+        SessionHelper::requireLogin();
         include 'app/views/product/checkout.php';
     }
     public function processCheckout()
     {
+        SessionHelper::requireLogin();
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $name   = trim($_POST['name'] ?? '');
             $phone  = trim($_POST['phone'] ?? '');

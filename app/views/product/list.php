@@ -31,6 +31,7 @@
 <script>
 $(document).ready(function() {
     const isAdmin = <?= SessionHelper::isAdmin() ? 'true' : 'false' ?>;
+    const isLoggedIn = <?= SessionHelper::isLoggedIn() ? 'true' : 'false' ?>;
     let allProducts = [];
 
     // Tải danh mục qua API
@@ -150,7 +151,7 @@ $(document).ready(function() {
                     </div>
 
                     <div class="button-container">
-                        <a href="/PhanDuongQuocNhat/Product/addToCart/${product.id}" class="buy-button button">Thêm vào giỏ</a>
+                        <a href="/PhanDuongQuocNhat/Product/addToCart/${product.id}" class="buy-button button add-to-cart-btn">Thêm vào giỏ</a>
                         ${adminButtons}
                     </div>
                 </div>
@@ -159,6 +160,15 @@ $(document).ready(function() {
         html += '</div>';
         $('#product-container').html(html);
     }
+
+    // Xử lý click Thêm vào giỏ
+    $(document).on('click', '.add-to-cart-btn', function(e) {
+        if (!isLoggedIn) {
+            e.preventDefault();
+            alert('Bạn phải đăng nhập để mua sắm!');
+            window.location.href = '/PhanDuongQuocNhat/account/login';
+        }
+    });
 
     // Xử lý Xóa qua API
     $(document).on('click', '.delete-btn', function(e) {

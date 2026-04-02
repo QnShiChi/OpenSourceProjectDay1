@@ -54,7 +54,7 @@
                         <!-- Nút hành động -->
                         <div class="d-flex flex-wrap gap-3 mt-4">
                             <a href="/PhanDuongQuocNhat/Product/addToCart/<?= $product->id ?>" 
-                               class="btn btn-success btn-lg flex-grow-1">
+                               class="btn btn-success btn-lg flex-grow-1 add-to-cart-btn-show">
                                 <i class="fas fa-cart-plus me-2"></i> Thêm vào giỏ hàng
                             </a>
                             <?php if (SessionHelper::isAdmin()): ?>
@@ -87,5 +87,21 @@
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isLoggedIn = <?= SessionHelper::isLoggedIn() ? 'true' : 'false' ?>;
+    const btn = document.querySelector('.add-to-cart-btn-show');
+    if (btn) {
+        btn.addEventListener('click', function(e) {
+            if (!isLoggedIn) {
+                e.preventDefault();
+                alert('Bạn phải đăng nhập để mua sắm!');
+                window.location.href = '/PhanDuongQuocNhat/account/login';
+            }
+        });
+    }
+});
+</script>
 
 <?php include 'app/views/shares/footer.php'; ?>
